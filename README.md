@@ -25,3 +25,11 @@ pip install rdkit
 
 conda install plotly pandas scikit-learn
 ```
+
+Usage:
+
+```bash 
+
+python chem_spacer.py -i input.csv -o output_folder
+
+```
