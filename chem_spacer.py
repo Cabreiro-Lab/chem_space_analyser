@@ -12,6 +12,7 @@ import glob
 import os
 from sklearn.manifold import TSNE
 import plotly.express as px
+from umap import UMAP
 
 # parameters
 parser = OptionParser()
@@ -43,6 +44,12 @@ parser.add_option("-g", "--perplexity_grid",
                   dest="perplexity_grid",
                   action="store_true",
                   help="use a grid search for perplexity with values 5, 10, 20, 30, 40, 50")
+
+parser.add_option("-u", "--umap",
+                  default=False,
+                  dest="umap",
+                  action="store_true",
+                  help="Calculate UMAP with default parameters")
 
 parser.add_option("-n", "--iterations",
                     default=1000,
@@ -82,8 +89,8 @@ def read_input(input_file):
     df = pd.read_csv(input_file)
 
     # check if the input file has the required columns
-    if 'smiles' not in df.columns:
-        raise ValueError("The input file does not have a column named 'smiles'.")
+    if 'smiles' not in df.columns or 'name' not in df.columns:
+        raise ValueError("The input file does not have a column named 'smiles' or 'name'.")
     
     # check for duplicates
     if df.duplicated(subset='smiles').any():
@@ -128,7 +135,7 @@ def calculate_func_gr(input):
     smiles = read_input(input)
 
     smiles['mols'] = smiles['smiles'].apply(Chem.MolFromSmiles) # convert smiles to mols
-    smiles.dropna(inplace=True) # remove na in mols
+    smiles.dropna(subset=['mols'],inplace=True) # remove na in mols
     smiles.reset_index(drop=True, inplace=True) # reset index
 
     # calculate the functional groups
@@ -172,18 +179,18 @@ def tsne_calc(final_df, perplexity=30, iterations=1000):
             n_jobs=threads)
 
     # calculate the tSNE from the column fr_Al_COO to the last column
-    X = final_df.iloc[:, 2:].values
+    X = final_df.iloc[:, 3:].values
     X_embedded = tsne.fit_transform(X)
 
     # create a dataframe with the tSNE results
     tsne_df = pd.DataFrame(X_embedded, columns=['tsne_1', 'tsne_2', 'tsne_3'])
     # add the two original columns from the final_df
-    tsne_df = pd.concat([final_df.iloc[:, 0:2], tsne_df], axis=1)
+    tsne_df = pd.concat([final_df.iloc[:, 0:3], tsne_df], axis=1)
 
     print("\nt-SNE calculation finished.\n")
 
     # save the t-SNE dataframe
-    tsne_df.to_csv(f"{options.output}/tsne_results.csv", index=False)
+    tsne_df.to_csv(f"{options.output}/tsne_results_perplexity_{perplexity}.csv", index=False)
 
     return tsne_df
 
@@ -201,7 +208,65 @@ def plotly_tsne(tsne_df, outfile='tsne_plot.html'):
     """
     columns = tsne_df.columns
 
-    fig = px.scatter_3d(tsne_df, x='tsne_1', y='tsne_2', z='tsne_3', color=columns[1], hover_data=['smiles'])
+    fig = px.scatter_3d(tsne_df, x='tsne_1', y='tsne_2', z='tsne_3', color=columns[2], hover_data=['name'])
+
+    fig.update_traces(marker=dict(size=6,opacity=0.8))
+    
+    # save the plot in the output folder
+    fig.write_html(f"{options.output}/{outfile}")
+
+    print(f"\nPlot saved in {options.output}/{outfile}\n")
+
+
+def umap_calc(final_df, n_neighbors=15, min_dist=0.1, n_components=3):
+    """
+    Calculate the UMAP for the final dataframe.
+    
+    Parameters
+    
+    final_df : pandas dataframe that comes from the calculate_func_gr function
+    
+    Returns
+    
+    umap_df : pandas dataframe
+    """
+    print(f"\nCalculating UMAP. This can take a while, go grab a coffee.\n")
+    umap = UMAP(n_components=n_components,
+            verbose=1, n_neighbors=n_neighbors, min_dist=min_dist,
+            n_jobs=threads)
+
+    # calculate the UMAP from the column fr_Al_COO to the last column
+    X = final_df.iloc[:, 3:].values
+    X_embedded = umap.fit_transform(X)
+
+    # create a dataframe with the UMAP results
+    umap_df = pd.DataFrame(X_embedded, columns=['umap_1', 'umap_2', 'umap_3'])
+    # add the two original columns from the final_df
+    umap_df = pd.concat([final_df.iloc[:, 0:3], umap_df], axis=1)
+
+    print("\nUMAP calculation finished.\n")
+
+    # save the UMAP dataframe
+    umap_df.to_csv(f"{options.output}/umap_results_neigh_{n_neighbors}_mindist_{min_dist}.csv", index=False)
+
+    return umap_df
+
+
+def plotly_umap(umap_df, outfile='umap_plot.html'):
+    """
+    Plot the UMAP with plotly.
+    
+    Parameters
+    
+    umap_df : pandas dataframe that comes from the umap_calc function
+    
+    Returns
+    
+    None
+    """
+    columns = umap_df.columns
+
+    fig = px.scatter_3d(umap_df, x='umap_1', y='umap_2', z='umap_3', color=columns[2], hover_data=['name'])
 
     fig.update_traces(marker=dict(size=6,opacity=0.9))
     
@@ -209,7 +274,6 @@ def plotly_tsne(tsne_df, outfile='tsne_plot.html'):
     fig.write_html(f"{options.output}/{outfile}")
 
     print(f"\nPlot saved in {options.output}/{outfile}\n")
-
 
 
 def main():
@@ -246,6 +310,13 @@ def main():
 
         # plot the t-SNE
         plotly_tsne(tsne_df)
+
+    if options.umap:
+        # calculate the UMAP
+        umap_df = umap_calc(final_df)
+
+        # plot the UMAP
+        plotly_umap(umap_df)
 
 if __name__ == '__main__':
     main()
