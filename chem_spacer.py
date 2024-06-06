@@ -38,6 +38,12 @@ parser.add_option("-p", "--perplexity",
                     help = "perplexity for t-SNE",
                     metavar = "PERPLEXITY")
 
+parser.add_option("-g", "--perplexity_grid",
+                  default=False,
+                  dest="perplexity_grid",
+                  action="store_true",
+                  help="use a grid search for perplexity with values 5, 10, 20, 30, 40, 50")
+
 parser.add_option("-n", "--iterations",
                     default=1000,
                     dest = "iterations",
@@ -146,7 +152,7 @@ def calculate_func_gr(input):
 
     return final_df
 
-def tsne_calc(final_df):
+def tsne_calc(final_df, perplexity=30, iterations=1000):
     """
     Calculate the t-SNE for the final dataframe.
     
@@ -158,10 +164,10 @@ def tsne_calc(final_df):
     
     tsne_df : pandas dataframe
     """
-    print(f"\nCalculating t-SNE with perplexity {options.perplexity} and {options.iterations} iterations. This can take a while, go grab a coffee.\n")
+    print(f"\nCalculating t-SNE with perplexity {perplexity} and {options.iterations} iterations. This can take a while, go grab a coffee.\n")
     tsne = TSNE(n_components=3, random_state=123,
-            perplexity=int(options.perplexity), 
-            max_iter=int(options.iterations), 
+            perplexity=int(perplexity), 
+            max_iter=int(iterations), 
             verbose=1,
             n_jobs=threads)
 
@@ -181,7 +187,7 @@ def tsne_calc(final_df):
 
     return tsne_df
 
-def plotly_tsne(tsne_df):
+def plotly_tsne(tsne_df, outfile='tsne_plot.html'):
     """
     Plot the t-SNE with plotly.
     
@@ -196,11 +202,13 @@ def plotly_tsne(tsne_df):
     columns = tsne_df.columns
 
     fig = px.scatter_3d(tsne_df, x='tsne_1', y='tsne_2', z='tsne_3', color=columns[1], hover_data=['smiles'])
+
+    fig.update_traces(marker=dict(size=6,opacity=0.9))
     
     # save the plot in the output folder
-    fig.write_html(f"{options.output}/tsne_plot.html")
+    fig.write_html(f"{options.output}/{outfile}")
 
-    print(f"\nPlot saved in {options.output}/tsne_plot.html\n")
+    print(f"\nPlot saved in {options.output}/{outfile}\n")
 
 
 
@@ -210,17 +218,34 @@ def main():
         print(version())
         return
 
+    if options.input is None:
+        parser.error("option -i/--inp is required")
+
+    if options.output is None:
+        parser.error("option -o/--out is required")
+
     # create the output folder
     create_output_folder(options.output)
 
     # calculate the functional groups
     final_df = calculate_func_gr(options.input)
 
-    # calculate the t-SNE
-    tsne_df = tsne_calc(final_df)
 
-    # plot the t-SNE
-    plotly_tsne(tsne_df)
+    if options.perplexity_grid:
+        print(f"\nCalculating t-SNE with a grid search for perplexity. This will take a while! \n")
+        perplexity_values = [5, 10, 20, 30, 40, 50]
+        for perplexity in perplexity_values:
+            tsne_df = tsne_calc(final_df, perplexity, int(options.iterations))
+            plotly_tsne(tsne_df, f'tsne_plot_perplexity_{perplexity}.html')
+        return
+    else:
+    # calculate the t-SNE
+        tsne_df = tsne_calc(final_df, 
+                            int(options.perplexity), 
+                            int(options.iterations))
+
+        # plot the t-SNE
+        plotly_tsne(tsne_df)
 
 if __name__ == '__main__':
     main()
