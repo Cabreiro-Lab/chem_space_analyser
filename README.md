@@ -1,4 +1,4 @@
-# chem_space_analyser
+# Chemical space analysis
 Generating multidimensional analyses of chemical compounds with ease
 
 This script is designed to generate a multidimensional analysis of chemical compounds. It is based on the RDKit library and uses the functional groups from the Fragments in RDKit to generate a multidimensional representation of the chemical space. The script will read a csv file with 2 columns: the first column is the SMILES representation of the compound and the second column is metadata from the compound. The script will generate a multidimensional representation of the chemical space and will generate a t-SNE plot of the chemical space. 
@@ -56,7 +56,7 @@ TODO:
 - [x] Add UMAP support
 - [ ] Add the option to use the Morgan fingerprints
 - [ ] Add the option to use the ECFP fingerprints
-- [ ] Support for Drug names
+- [x] Support for Drug names
 
 
 Any feedback is welcome!
