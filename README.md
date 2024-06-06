@@ -7,9 +7,9 @@ The input must be a csv file with two columns where the first **must** be named 
 
 ```
 smiles, metadata
-C1=CC=C(C=C1)C(=O)O, active
-C1=CC=C(C=C1)C(=O)O, active
-C1=CC=C(C=C1)C(=O)O, inactive
+CC(C)(CN(CC1)CCC1NCc1nc([nH]cc2)c2cc1)O, active
+CN(C)C1CCN(CCCNc2c3[s]c(N(C)C)nc3ncn2)CC1, active
+CCCN1CC(CNC(NC(CN(C)C2)c3c2cccc3)=O)CC1, inactive
 ...
 ``` 
 
@@ -42,3 +42,11 @@ Besides these required parameters, you can also set the following optional param
 - `--iterations`: the number of iterations of the t-SNE algorithm. Default is 1000.
 - `--perplexity_grid`: it will bypass the `--perplexity` parameter and will run the t-SNE algorithm with a grid of perplexities ([5, 10, 20, 30, 40, 50]). Default is False.
 ```
+
+TODO:
+- [ ] Add the option to use the Morgan fingerprints
+- [ ] Add the option to use the ECFP fingerprints
+- Support for Drug names
+
+
+Any feedback is welcome!
