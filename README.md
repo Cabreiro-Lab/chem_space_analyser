@@ -3,7 +3,7 @@ Generating multidimensional analyses of chemical compounds with ease
 
 This script is designed to generate a multidimensional analysis of chemical compounds. It is based on the RDKit library and uses the functional groups from the Fragments in RDKit to generate a multidimensional representation of the chemical space. The script will read a csv file with 2 columns: the first column is the SMILES representation of the compound and the second column is metadata from the compound. The script will generate a multidimensional representation of the chemical space and will generate a t-SNE plot of the chemical space. 
 
-The input must be a csv file with two columns where the first one is named as `smiles`. It may have the following format:
+The input must be a csv file with two columns where the first **must** be named as `smiles`. It should have the following format:
 
 ```
 smiles, metadata
@@ -32,4 +32,13 @@ Usage:
 
 python chem_spacer.py -i input.csv -o output_folder
 
+```
+
+Besides these required parameters, you can also set the following optional parameters:
+
+```
+- `--threads`: the number of threads to use. Default is 1.
+- `--perplexity`: the perplexity of the t-SNE algorithm. Default is 30.
+- `--iterations`: the number of iterations of the t-SNE algorithm. Default is 1000.
+- `--perplexity_grid`: it will bypass the `--perplexity` parameter and will run the t-SNE algorithm with a grid of perplexities ([5, 10, 20, 30, 40, 50]). Default is False.
 ```
