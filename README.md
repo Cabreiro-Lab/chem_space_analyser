@@ -14,7 +14,7 @@ CCCN1CC(CNC(NC(CN(C)C2)c3c2cccc3)=O)CC1, name_3, inactive
 ``` 
 
 There is an example of a csv file with the right format.
-
+git push --mirror mirror
 It will create a folder where it will save these output files:
 - functional_groups.csv: a csv file with the functional groups of the compounds
 - tsne_results.csv: a csv file with the t-SNE coordinates of the compounds
