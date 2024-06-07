@@ -45,17 +45,17 @@ parser.add_option("-g", "--perplexity_grid",
                   action="store_true",
                   help="use a grid search for perplexity with values 5, 10, 20, 30, 40, 50")
 
-parser.add_option("-u", "--umap",
-                  default=False,
-                  dest="umap",
-                  action="store_true",
-                  help="Calculate UMAP with default parameters")
-
 parser.add_option("-n", "--iterations",
                     default=1000,
                     dest = "iterations",
                     help = "number of iterations for t-SNE",
                     metavar = "ITERATIONS")
+
+parser.add_option("-u", "--umap",
+                  default=False,
+                  dest="umap",
+                  action="store_true",
+                  help="Calculate UMAP with default parameters")
 
 parser.add_option("-v", "--version",
                     action="store_true",
@@ -208,7 +208,7 @@ def plotly_tsne(tsne_df, outfile='tsne_plot.html'):
     """
     columns = tsne_df.columns
 
-    fig = px.scatter_3d(tsne_df, x='tsne_1', y='tsne_2', z='tsne_3', color=columns[2], hover_data=['name'])
+    fig = px.scatter_3d(tsne_df, x='tsne_1', y='tsne_2', z='tsne_3', color=columns[2], hover_data=['name', 'smiles'])
 
     fig.update_traces(marker=dict(size=6,opacity=0.8))
     
@@ -266,7 +266,7 @@ def plotly_umap(umap_df, outfile='umap_plot.html'):
     """
     columns = umap_df.columns
 
-    fig = px.scatter_3d(umap_df, x='umap_1', y='umap_2', z='umap_3', color=columns[2], hover_data=['name'])
+    fig = px.scatter_3d(umap_df, x='umap_1', y='umap_2', z='umap_3', color=columns[2], hover_data=['name', 'smiles'])
 
     fig.update_traces(marker=dict(size=6,opacity=0.9))
     
